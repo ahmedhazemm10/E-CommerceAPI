@@ -1,0 +1,15 @@
+## Ignore Visual Studio files
+.vs/
+*.user
+*.suo
+
+## Ignore build results
+bin/
+obj/
+
+## Ignore app settings secrets
+appsettings.Development.json
+
+## Ignore OS files
+.DS_Store
+Thumbs.db
