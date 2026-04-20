@@ -1,8 +1,10 @@
+using E_CommerceAPI.Hubs;
 using E_CommerceAPI.Models;
 using E_CommerceAPI.Repository;
 using E_CommerceAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -16,13 +18,23 @@ namespace E_CommerceAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy
+                        .WithOrigins("http://127.0.0.1:5500")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                });
+            });
+
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
                 {
                     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
                 });
-
 
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("cs")));
@@ -30,6 +42,8 @@ namespace E_CommerceAPI
             builder.Services.AddIdentity<User, IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
+
+            builder.Services.AddSignalR();
 
             builder.Services.AddAuthentication(options =>
             {
@@ -50,7 +64,6 @@ namespace E_CommerceAPI
                 };
             });
 
-
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
             {
@@ -63,6 +76,7 @@ namespace E_CommerceAPI
                     In = ParameterLocation.Header,
                     Description = "Enter the token here"
                 });
+
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     {
@@ -88,10 +102,10 @@ namespace E_CommerceAPI
             builder.Services.AddScoped<ICartServices, CartServices>();
             builder.Services.AddScoped<IOrderRepository, OrderRepository>();
             builder.Services.AddScoped<IOrderServices, OrderServices>();
+            builder.Services.AddScoped<INotificationServices, NotificationServices>();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -102,10 +116,15 @@ namespace E_CommerceAPI
                 });
             }
 
-            app.UseAuthentication(); 
+            app.UseRouting();
+
+            app.UseCors("AllowAll");
+
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllers();
+            app.MapHub<NotificationHub>("/notificationhub");
 
             app.Run();
         }

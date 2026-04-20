@@ -1,4 +1,5 @@
 ﻿using E_CommerceAPI.DTOs;
+using E_CommerceAPI.Hubs;
 using E_CommerceAPI.Models;
 using E_CommerceAPI.Repository;
 
@@ -8,12 +9,15 @@ namespace E_CommerceAPI.Services
     {
         IProductRepository Repository;
         ICategoryRepository Repositorycat;
+        INotificationServices NotificationServices;
 
-        public ProductServices(IProductRepository repository, ICategoryRepository repositorycat)
+        public ProductServices(IProductRepository repository, ICategoryRepository repositorycat, INotificationServices notificationServices)
         {
             Repository = repository;
             Repositorycat = repositorycat;
+            NotificationServices = notificationServices;
         }
+
         public bool Add(ProductCreateDTO productCreateDTO)
         {
             if (Repositorycat.GetById(productCreateDTO.CategoryId) == null)
@@ -30,6 +34,13 @@ namespace E_CommerceAPI.Services
             };
             Repository.Add(product);
             Repository.Save();
+            NotificationServices.AddProductNotification(new AddProductNotificationDTO()
+            {
+                Description = productCreateDTO.Description,
+                Name = productCreateDTO.Name,
+                Price = productCreateDTO.Price,
+                Quantity = productCreateDTO.Quantity
+            });
             return true;
         }
 
