@@ -31,6 +31,7 @@ namespace E_CommerceAPI.Services
                 Description = productCreateDTO.Description,
                 Quantity = productCreateDTO.Quantity,
                 Price = productCreateDTO.Price,
+                ImageUrl = productCreateDTO.ImageUrl
             };
             Repository.Add(product);
             Repository.Save();
@@ -69,7 +70,8 @@ namespace E_CommerceAPI.Services
                 Description = p.Description,
                 Price = p.Price,
                 ID = p.Id,
-                Quantity = p.Quantity
+                Quantity = p.Quantity,
+                ImageUrl = p.ImageUrl
             }).ToList();
         }
 
@@ -82,7 +84,8 @@ namespace E_CommerceAPI.Services
                 Description = p.Description,
                 Price = p.Price,
                 ID = p.Id,
-                Quantity = p.Quantity
+                Quantity = p.Quantity,
+                ImageUrl = p.ImageUrl
             }).ToList();
         }
         public ProductReadDTO GetById(int id)
@@ -99,7 +102,8 @@ namespace E_CommerceAPI.Services
                 Description = product.Description,
                 Price = product.Price,
                 ID = product.Id,
-                Quantity = product.Quantity
+                Quantity = product.Quantity,
+                ImageUrl = product.ImageUrl
             };
         }
 
@@ -136,7 +140,8 @@ namespace E_CommerceAPI.Services
                 Description = p.Description,
                 Price = p.Price,
                 ID = p.Id,
-                Quantity = p.Quantity
+                Quantity = p.Quantity,
+                ImageUrl= p.ImageUrl
             }).ToList();
         }
 
@@ -154,6 +159,7 @@ namespace E_CommerceAPI.Services
                 product.Price = productCreateDTO.Price;
                 product.Quantity = productCreateDTO.Quantity;
                 product.CategoryId = productCreateDTO.CategoryId;
+                product.ImageUrl = productCreateDTO.ImageUrl;
                 Repository.Update(product);
                 Repository.Save();
                 return true;

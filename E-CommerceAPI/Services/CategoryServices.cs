@@ -36,32 +36,34 @@ namespace E_CommerceAPI.Services
             return false;
         }
 
-        public List<CategoryDTO> GetAll()
+        public List<CategoryReadDTO> GetAll()
         {
-            return Repository.GetAll().Select(x => new CategoryDTO() { Description= x.Description, Name=x.Name }).ToList();
+            return Repository.GetAll().Select(x => new CategoryReadDTO() { Description= x.Description, Name=x.Name, Id = x.Id }).ToList();
         }
 
-        public CategoryDTO? GetById(int id)
+        public CategoryReadDTO? GetById(int id)
         {
             var cat = Repository.GetById(id);
             if (cat != null)
             {
-                var catDTO = new CategoryDTO()
+                var catDTO = new CategoryReadDTO()
                 {
                     Description = cat.Description,
-                    Name = cat.Name
+                    Name = cat.Name,
+                    Id = cat.Id
                 };
                 return catDTO;
             }
             return null;
         }
 
-        public List<CategoryDTO> Search(string name)
+        public List<CategoryReadDTO> Search(string name)
         {
-            return Repository.Search(name).Select(c => new CategoryDTO()
+            return Repository.Search(name).Select(c => new CategoryReadDTO()
                    {
                       Description = c.Description,
-                      Name = c.Name
+                      Name = c.Name, 
+                      Id = c.Id
                    }).ToList();
         }
 

@@ -4,11 +4,12 @@ using E_CommerceAPI.Repository;
 using E_CommerceAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace E_CommerceAPI
 {
@@ -18,33 +19,46 @@ namespace E_CommerceAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // --- 1. CORS Configuration ---
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", policy =>
                 {
-                    policy
-                        .WithOrigins("http://127.0.0.1:5500")
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials();
+                    policy.SetIsOriginAllowed(origin => true) // مسموح لأي Domain (مفيد جداً في التطوير)
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials();
                 });
             });
 
+            // --- 2. Controllers & JSON Options ---
             builder.Services.AddControllers()
                 .AddJsonOptions(options =>
                 {
-                    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+                    // الحل السحري لمشكلة الـ Include والـ Navigation Properties
+                    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                    // جعل المسميات مرنة (لا يشترط تطابق حالة الأحرف)
+                    options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
                 });
 
+            // --- 3. Database & Identity ---
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("cs")));
 
-            builder.Services.AddIdentity<User, IdentityRole>()
-                .AddEntityFrameworkStores<AppDbContext>()
-                .AddDefaultTokenProviders();
+            builder.Services.AddIdentity<User, IdentityRole>(options => {
+                options.Password.RequireDigit = false;
+                options.Password.RequiredLength = 4;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireLowercase = false;
+            })
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
 
+            // --- 4. SignalR ---
             builder.Services.AddSignalR();
 
+            // --- 5. Authentication & JWT ---
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -64,6 +78,7 @@ namespace E_CommerceAPI
                 };
             });
 
+            // --- 6. Swagger ---
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
             {
@@ -74,7 +89,7 @@ namespace E_CommerceAPI
                     Scheme = "Bearer",
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
-                    Description = "Enter the token here"
+                    Description = "Enter 'Bearer' followed by your token"
                 });
 
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -88,11 +103,12 @@ namespace E_CommerceAPI
                                 Id = "Bearer"
                             }
                         },
-                        new string[] {}
+                        Array.Empty<string>()
                     }
                 });
             });
 
+            // --- 7. Dependency Injection (DI) ---
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
             builder.Services.AddScoped<ICategoryServices, CategoryServices>();
@@ -106,18 +122,20 @@ namespace E_CommerceAPI
 
             var app = builder.Build();
 
+            // --- 8. Middleware Pipeline ---
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI(c =>
                 {
                     c.SwaggerEndpoint("/swagger/v1/swagger.json", "E-Commerce API V1");
-                    c.RoutePrefix = string.Empty;
+                    c.RoutePrefix = string.Empty; // لجعل Swagger الصفحة الافتراضية
                 });
             }
 
             app.UseRouting();
 
+            // تفعيل الـ CORS قبل الـ Auth
             app.UseCors("AllowAll");
 
             app.UseAuthentication();

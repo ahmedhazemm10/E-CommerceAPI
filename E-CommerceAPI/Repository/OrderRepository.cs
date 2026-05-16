@@ -31,8 +31,13 @@ namespace E_CommerceAPI.Repository
 
         public List<Order> GetUserOrders(string userId)
         {
-            return appDbContext.Orders.Include(o => o.OrderItems).ThenInclude(o => o.Product)
-                .Where(o => o.UserId == userId).OrderByDescending(o => o.CreatedAt).ToList();
+            return appDbContext.Orders
+        .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Product) // تأكد من الـ Include دي
+        .Where(o => o.UserId == userId)
+        .OrderByDescending(o => o.CreatedAt)
+        .AsNoTracking() // ضيف دي عشان تمنع الـ Proxy والـ Cycles
+        .ToList();
         }
 
         public void Save()

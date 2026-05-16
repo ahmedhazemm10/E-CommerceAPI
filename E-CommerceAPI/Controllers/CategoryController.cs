@@ -21,7 +21,7 @@ namespace E_CommerceAPI.Controllers
         [HttpGet("GetAll")]
         public IActionResult GetAll()
         {
-            var response = new GeneralResponse<List<CategoryDTO>>()
+            var response = new GeneralResponse<List<CategoryReadDTO>>()
             {
                 Data = _services.GetAll(),
                 IsSucceeded = true,
@@ -34,7 +34,7 @@ namespace E_CommerceAPI.Controllers
         public IActionResult GetById(int id)
         {
             var cat = _services.GetById(id);
-            var response = new GeneralResponse<CategoryDTO>();
+            var response = new GeneralResponse<CategoryReadDTO>();
             if (cat == null)
             {
                 response.IsSucceeded = false;
@@ -99,7 +99,7 @@ namespace E_CommerceAPI.Controllers
         [HttpGet("Search/{name}")]
         public IActionResult Search(string name)
         {
-            var response = new GeneralResponse<List<CategoryDTO>>()
+            var response = new GeneralResponse<List<CategoryReadDTO>>()
             {
                 Data = _services.Search(name),
                 IsSucceeded = true,

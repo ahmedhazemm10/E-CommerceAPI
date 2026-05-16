@@ -98,7 +98,8 @@ namespace E_CommerceAPI.Controllers
                 {
                     token = new JwtSecurityTokenHandler().WriteToken(token),
                     expiration = token.ValidTo,
-                    userName = user.UserName
+                    userName = user.UserName,
+                    userId = user.Id,
                 });
             }
             return Unauthorized(new { Message = "Invalid UserName or Password" });

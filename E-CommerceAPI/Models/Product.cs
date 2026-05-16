@@ -8,6 +8,8 @@ namespace E_CommerceAPI.Models
         public int Id { get; set; }
         [Required,MaxLength(50)]
         public string Name { get; set; }
+        [Required]
+        public string ImageUrl { get; set; }
         [Required,MaxLength(100)]
         public string Description { get; set; }
         [Range(0.1,double.MaxValue)]
